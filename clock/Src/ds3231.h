@@ -13,7 +13,7 @@ uint8_t I2C_WriteBuffer(I2C_HandleTypeDef hi, uint8_t DEV_ADDR, uint8_t *buf, ui
 uint8_t I2C_ReadBuffer(I2C_HandleTypeDef hi, uint8_t DEV_ADDR, uint8_t *buf, uint8_t sizebuf);
 void getTimeAndDate(void);
 
-extern I2C_HandleTypeDef hi2c1;
+extern I2C_HandleTypeDef hi2c2;
 extern UART_HandleTypeDef huart2;
 //--------------------------------------
 uint8_t rtcData[8];
@@ -56,7 +56,7 @@ typedef struct
 //--------------------------------------
 DS3231_Time_t DS3231_Time;
 //--------------------------------------
-//czyszczenie bufora domyœlnymi wartoœciami
+//czyszczenie bufora domyï¿½lnymi wartoï¿½ciami
 static uint8_t clearDS3231Buffer(void)
 {
     DS3231_Time.seconds = 0;
@@ -98,9 +98,9 @@ uint8_t I2C_ReadBuffer(I2C_HandleTypeDef hi, uint8_t DEV_ADDR, uint8_t *buf, uin
 //-
 uint8_t RTC_Init(void)
 {
-	I2C_WriteBuffer(hi2c1, (uint16_t)0xD0, rtcData, 1);
+	I2C_WriteBuffer(hi2c2, (uint16_t)0xD0, rtcData, 1);
     uint8_t data[2] = {0x0F, 0x00};
-    I2C_WriteBuffer(hi2c1, 0xD0, data, sizeof(data));
+    I2C_WriteBuffer(hi2c2, 0xD0, data, sizeof(data));
 }
 //-----------------------------------------------
 inline static uint8_t RTC_ConvertFromDec(uint8_t c)
@@ -187,9 +187,9 @@ void getTimeAndDate(void)
 {
 	//clearDS3231Buffer();
 	uint8_t rtcData[8];
-    I2C_WriteBuffer(hi2c1, (uint16_t)0xD0, rtcData, 1);
-    while(HAL_I2C_GetState(&hi2c1)!=HAL_I2C_STATE_READY) { }
-    I2C_ReadBuffer(hi2c1, (uint16_t)0xD0, rtcData, 7);
+    I2C_WriteBuffer(hi2c2, (uint16_t)0xD0, rtcData, 1);
+    while(HAL_I2C_GetState(&hi2c2)!=HAL_I2C_STATE_READY) { }
+    I2C_ReadBuffer(hi2c2, (uint16_t)0xD0, rtcData, 7);
 
     DS3231_Time.year = rtcData[6];
     DS3231_Time.year = RTC_ConvertFromDec(DS3231_Time.year);
