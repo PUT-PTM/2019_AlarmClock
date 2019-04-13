@@ -110,13 +110,16 @@ int main(void)
   	 RTC_Init();
   	 lcd_init();
   /* USER CODE BEGIN 2 */
-  	 //od 0 do 15 ok
+
   //day -> dzien tygodnia od 1-7, date -> dzien miesiaca
-  uint8_t day = 5, date = 8, month = 4, year = 6;
+  day = 6, date = 13, month = 4, year = 19;
   DS3231_setDate(day, date, month, year);
  //ampm i hourformat nie jest wykorzystywany
-  uint8_t hour = 7, minute = 11, seconds = 5, amPmStateSet=1, hourFormat = 1;
+
+  hour = 20, minute = 46, seconds = 10, amPmStateSet=1, hourFormat = 1;
   DS3231_setTime(hour, minute, seconds, amPmStateSet, hourFormat);
+
+
   /* USER CODE END 2 */
 
   /* Infinite loop */

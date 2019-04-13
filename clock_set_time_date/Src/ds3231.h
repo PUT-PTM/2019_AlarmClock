@@ -27,6 +27,8 @@ extern UART_HandleTypeDef huart2;
 //--------------------------------------
 uint8_t rtcData[8];
 char str[100];
+uint8_t day=0, date=0, month=0, year=0;
+uint8_t hour = 0, minute = 0, seconds = 0, amPmStateSet=0, hourFormat = 0;
 //--------------------------------------
 
 typedef enum ErrorStat
@@ -157,28 +159,44 @@ void DS3231_setTime(uint8_t hourToSet, uint8_t minuteToSet, uint8_t  secondToSet
 {
     unsigned char writeValue = 0;
 
-    uint8_t data[2] = {secondREG, (RTC_ConvertFromDec(secondToSet))};
+    uint8_t data[2] = {secondREG, (RTC_ConvertFromBinDec(secondToSet))};
     I2C_WriteBuffer(hi2c2, DS3231_ADD, data, sizeof(data));
 
-    uint8_t data2[2] = {minuteREG, (RTC_ConvertFromDec(minuteToSet))};
+    uint8_t data2[2] = {minuteREG, (RTC_ConvertFromBinDec(minuteToSet))};
     I2C_WriteBuffer(hi2c2, DS3231_ADD, data2, sizeof(data2));
 
-    uint8_t data3[2] = {hourREG, (RTC_ConvertFromDec(hourToSet))};
+    uint8_t data3[2] = {hourREG, (RTC_ConvertFromBinDec(hourToSet))};
     I2C_WriteBuffer(hi2c2, DS3231_ADD, data3, sizeof(data3));
 }
 
 void DS3231_setDate(uint8_t daySet, uint8_t dateSet, uint8_t monthSet, uint8_t yearSet)
 {
-	uint8_t data[2] = {dayREG, (RTC_ConvertFromDec(daySet))};
+	uint8_t data[2] = {dayREG, (RTC_ConvertFromBinDec(daySet))};
     I2C_WriteBuffer(hi2c2, DS3231_ADD, data, sizeof(data));
 
-    uint8_t data2[2] = {dateREG, (RTC_ConvertFromDec(dateSet))};
+    uint8_t data2[2] = {dateREG, (RTC_ConvertFromBinDec(dateSet))};
     I2C_WriteBuffer(hi2c2, DS3231_ADD, data2, sizeof(data2));
 
-    uint8_t data3[2] = {monthREG, (RTC_ConvertFromDec(monthSet))};
+    uint8_t data3[2] = {monthREG, (RTC_ConvertFromBinDec(monthSet))};
     I2C_WriteBuffer(hi2c2, DS3231_ADD, data3, sizeof(data3));
 
-    uint8_t data4[2] = {yearREG, (RTC_ConvertFromDec(yearSet))};
+    uint8_t data4[2] = {yearREG, (RTC_ConvertFromBinDec(yearSet))};
     I2C_WriteBuffer(hi2c2, DS3231_ADD, data4, sizeof(data4));
 }
+
+//
+uint8_t hexadec_to_dec(uint8_t x)
+{
+      uint8_t decimal_number, remainder, count = 0;
+      while(x > 0)
+      {
+            remainder = x % 10;
+            decimal_number = decimal_number + remainder * pow(16, count);
+            x = x / 10;
+            count++;
+      }
+      return decimal_number;
+}
+
+
 #endif /* DS3231_H_ */
