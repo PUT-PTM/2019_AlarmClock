@@ -8,16 +8,27 @@
 #define DS3231_ALARM2_SECONDS_REGISTER 0x0B
 #define DS3231_TEMPERATURE_MSB_REGISTER 0x11
 #define DS3231_CONTROL_REGISTER 0x0F
+
+#define secondREG  0x00
+#define minuteREG   0x01
+#define hourREG      0x02
+#define dayREG        0x03
+#define dateREG       0x04
+#define monthREG    0x05
+#define yearREG       0x06
+
 extern uint8_t rtcData[8];
 uint8_t I2C_WriteBuffer(I2C_HandleTypeDef hi, uint8_t DEV_ADDR, uint8_t *buf, uint8_t sizebuf);
 uint8_t I2C_ReadBuffer(I2C_HandleTypeDef hi, uint8_t DEV_ADDR, uint8_t *buf, uint8_t sizebuf);
 void getTimeAndDate(void);
 
-extern I2C_HandleTypeDef hi2c1;
+extern I2C_HandleTypeDef hi2c2;
 extern UART_HandleTypeDef huart2;
 //--------------------------------------
 uint8_t rtcData[8];
 char str[100];
+extern uint8_t day=0, date=0, month=0, year=0;
+extern uint8_t hour = 0, minute = 0, seconds = 0, amPmStateSet=0, hourFormat = 0;
 //--------------------------------------
 
 typedef enum ErrorStat
@@ -98,9 +109,8 @@ uint8_t I2C_ReadBuffer(I2C_HandleTypeDef hi, uint8_t DEV_ADDR, uint8_t *buf, uin
 //-
 uint8_t RTC_Init(void)
 {
-	I2C_WriteBuffer(hi2c1, (uint16_t)0xD0, rtcData, 1);
-    uint8_t data[2] = {0x0F, 0x00};
-    I2C_WriteBuffer(hi2c1, 0xD0, data, sizeof(data));
+	uint8_t data[2] = {DS3231_CONTROL_REGISTER, 0x00};
+	I2C_WriteBuffer(hi2c2, DS3231_ADD, data, sizeof(data));
 }
 //-----------------------------------------------
 inline static uint8_t RTC_ConvertFromDec(uint8_t c)
@@ -113,83 +123,13 @@ inline static uint8_t RTC_ConvertFromBinDec(uint8_t c)
     return ((c/10)<<4)|(c%10);
 }
 //-----------------------------------------------
-static void PrintData(DS3231_Time_t *DS3231_Values)
-{
-    char toSend[30];
-    uint8_t calculateSize=30;
-    //------------------------------------------------------------------
-    sprintf(toSend, "Date: %c%c\r\n", DS3231_Time.dateTab[0],DS3231_Time.dateTab[1]);
-    for(uint8_t i = 0; i<30;i++){
-        if(toSend[i] == '\n'){
-            calculateSize = i;
-            break;
-        }
-    }
-    HAL_UART_Transmit(&huart2, (uint8_t*)toSend, calculateSize, 0xFFFF);
-    //------------------------------------------------------------------
-    sprintf(toSend, "Month: %c%c\r\n", DS3231_Time.monthTab[0],DS3231_Time.monthTab[1]);
-    for(uint8_t i = 0; i<30;i++){
-        if(toSend[i] == '\n'){
-            calculateSize = i;
-            break;
-        }
-    }
-    HAL_UART_Transmit(&huart2,(uint8_t*)toSend,calculateSize,0xFFFF);
-    //------------------------------------------------------------------
-    sprintf(toSend, "Year: %c%c\r\n", DS3231_Time.yearTab[0],DS3231_Time.yearTab[1]);
-    for(uint8_t i = 0; i<30;i++){
-        if(toSend[i] == '\n'){
-            calculateSize = i;
-            break;
-        }
-    }
-    HAL_UART_Transmit(&huart2,(uint8_t*)toSend,calculateSize,0xFFFF);
-    //------------------------------------------------------------------
-    sprintf(toSend, "Day: %c\r\n",  DS3231_Time.dayTab);
-    for(uint8_t i = 0; i<30;i++){
-        if(toSend[i] == '\n'){
-            calculateSize = i;
-            break;
-        }
-    }
-    HAL_UART_Transmit(&huart2,(uint8_t*)toSend,calculateSize,0xFFFF);
-    //------------------------------------------------------------------
-    sprintf(toSend, "Hour: %c%c\r\n", DS3231_Time.hoursTab[0],  DS3231_Time.hoursTab[1]);
-    for(uint8_t i = 0; i<30;i++){
-        if(toSend[i] == '\n'){
-            calculateSize = i;
-            break;
-        }
-    }
-    HAL_UART_Transmit(&huart2,(uint8_t*)toSend,calculateSize,0xFFFF);
-    //------------------------------------------------------------------
-    sprintf(toSend, "Min: %c%c\r\n", DS3231_Time.minutesTab[0],DS3231_Time.minutesTab[1]);
-
-    for(uint8_t i = 0; i<30;i++){
-        if(toSend[i] == '\n'){
-            calculateSize = i;
-            break;
-        }
-    }
-    HAL_UART_Transmit(&huart2,(uint8_t*)toSend,calculateSize,0xFFFF);
-    //------------------------------------------------------------------
-    sprintf(toSend, "Sec: %c%c\r\n", DS3231_Time.secondsTab[0],DS3231_Time.secondsTab[1]);
-    for(uint8_t i = 0; i<30;i++){
-        if(toSend[i] == '\n'){
-            calculateSize = i;
-            break;
-        }
-    }
-    HAL_UART_Transmit(&huart2,(uint8_t*)toSend,calculateSize,0xFFFF);
-}
-//-----------------------------------------------
 void getTimeAndDate(void)
 {
 	//clearDS3231Buffer();
 	uint8_t rtcData[8];
-    I2C_WriteBuffer(hi2c1, (uint16_t)0xD0, rtcData, 1);
-    while(HAL_I2C_GetState(&hi2c1)!=HAL_I2C_STATE_READY) { }
-    I2C_ReadBuffer(hi2c1, (uint16_t)0xD0, rtcData, 7);
+    I2C_WriteBuffer(hi2c2, (uint16_t)0xD0, rtcData, 1);
+    while(HAL_I2C_GetState(&hi2c2)!=HAL_I2C_STATE_READY) { }
+    I2C_ReadBuffer(hi2c2, (uint16_t)0xD0, rtcData, 7);
 
     DS3231_Time.year = rtcData[6];
     DS3231_Time.year = RTC_ConvertFromDec(DS3231_Time.year);
@@ -211,28 +151,52 @@ void getTimeAndDate(void)
 
     DS3231_Time.seconds = rtcData[0];
     DS3231_Time.seconds = RTC_ConvertFromDec(DS3231_Time.seconds);
-
-    DS3231_Time.yearTab[0] = (char)((DS3231_Time.year/10)%10)+48;
-    DS3231_Time.yearTab[1] = (char)(DS3231_Time.year%10)+48;
-
-    DS3231_Time.monthTab[0] = (char)(((DS3231_Time.month/10)%10)+48);
-    DS3231_Time.monthTab[1] = (char)((DS3231_Time.month%10)+48);
-
-    DS3231_Time.dateTab[0] = (char)((DS3231_Time.date/10)%10)+48;
-    DS3231_Time.dateTab[1] = ((char)(DS3231_Time.date%10)+48);
-
-    DS3231_Time.dayTab = ((char)(DS3231_Time.day%10)+48);
-
-    DS3231_Time.hoursTab[0] = ((char)((DS3231_Time.hours/10)%10)+48);
-    DS3231_Time.hoursTab[1] = ((char)(DS3231_Time.hours%10)+48);
-
-    DS3231_Time.minutesTab[0] = ((char)((DS3231_Time.minutes/10)%10)+48);
-    DS3231_Time.minutesTab[1] = ((char)(DS3231_Time.minutes%10)+48);
-
-
-    DS3231_Time.secondsTab[0] = (char)((DS3231_Time.seconds/10)%10)+48;
-    DS3231_Time.secondsTab[1] = (char)(DS3231_Time.seconds%10)+48;
-
-   PrintData(&DS3231_Time);
 }
+
+///////////USTAWIANIE CZASU
+
+void DS3231_setTime(uint8_t hourToSet, uint8_t minuteToSet, uint8_t  secondToSet, uint8_t amPmStateSet, uint8_t hourFormat)
+{
+    unsigned char writeValue = 0;
+
+    uint8_t data[2] = {secondREG, (RTC_ConvertFromBinDec(secondToSet))};
+    I2C_WriteBuffer(hi2c2, DS3231_ADD, data, sizeof(data));
+
+    uint8_t data2[2] = {minuteREG, (RTC_ConvertFromBinDec(minuteToSet))};
+    I2C_WriteBuffer(hi2c2, DS3231_ADD, data2, sizeof(data2));
+
+    uint8_t data3[2] = {hourREG, (RTC_ConvertFromBinDec(hourToSet))};
+    I2C_WriteBuffer(hi2c2, DS3231_ADD, data3, sizeof(data3));
+}
+
+void DS3231_setDate(uint8_t daySet, uint8_t dateSet, uint8_t monthSet, uint8_t yearSet)
+{
+	uint8_t data[2] = {dayREG, (RTC_ConvertFromBinDec(daySet))};
+    I2C_WriteBuffer(hi2c2, DS3231_ADD, data, sizeof(data));
+
+    uint8_t data2[2] = {dateREG, (RTC_ConvertFromBinDec(dateSet))};
+    I2C_WriteBuffer(hi2c2, DS3231_ADD, data2, sizeof(data2));
+
+    uint8_t data3[2] = {monthREG, (RTC_ConvertFromBinDec(monthSet))};
+    I2C_WriteBuffer(hi2c2, DS3231_ADD, data3, sizeof(data3));
+
+    uint8_t data4[2] = {yearREG, (RTC_ConvertFromBinDec(yearSet))};
+    I2C_WriteBuffer(hi2c2, DS3231_ADD, data4, sizeof(data4));
+}
+
+//
+uint8_t hexadec_to_dec(uint8_t x)
+{
+      uint8_t decimal_number, remainder, count = 0;
+      while(x > 0)
+      {
+            remainder = x % 10;
+            decimal_number = decimal_number + remainder * pow(16, count);
+            x = x / 10;
+            count++;
+      }
+      return decimal_number;
+}
+
+
 #endif /* DS3231_H_ */

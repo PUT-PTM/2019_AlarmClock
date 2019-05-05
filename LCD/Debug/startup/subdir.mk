@@ -4,9 +4,11 @@
 
 # Add inputs and outputs from these tool invocations to the build variables 
 S_SRCS += \
+../startup/._startup_stm32f407xx.s \
 ../startup/startup_stm32f407xx.s 
 
 OBJS += \
+./startup/._startup_stm32f407xx.o \
 ./startup/startup_stm32f407xx.o 
 
 

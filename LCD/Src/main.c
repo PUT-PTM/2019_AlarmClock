@@ -64,6 +64,20 @@ static void MX_USART2_UART_Init(void);
 
 /* USER CODE BEGIN PFP */
 /* Private function prototypes -----------------------------------------------*/
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+{
+
+	HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0) == GPIO_PIN_SET;
+
+   	 HAL_GPIO_WritePin(GPIOD,GPIO_PIN_12,SET);
+   	  lcd_clear();
+   	  int number=5;
+   	  lcd_send_cmd(0x80);
+   	  lcd_send_integer(number,2);
+
+
+}
+
 
 
 
@@ -106,10 +120,22 @@ int main(void)
   MX_I2C2_Init();
   MX_USART2_UART_Init();
   RTC_Init();
+     	  lcd_init();
   /* USER CODE BEGIN 2 */
-  lcd_init ();
-  int trzy=3;
+  int minuty=0;
+  int godziny=0;
+  int flaga=0;
+  int clearc=0;
+  //day -> dzien tygodnia od 1-7, date -> dzien miesiaca
+  //day= 6, date = 27, month = 4, year = 19;
+  //DS3231_setDate(day, date, month, year);
 
+
+ //ampm i hourformat nie jest wykorzystywany
+
+  seconds = 0;
+  //DS3231_setTime(hour, minute, seconds, amPmStateSet, hourFormat);
+  //HAL_TIM_Base_Start_IT(&htim4);
 
 
   HAL_UART_Transmit(&huart2,str1,16,0xFFFF);
@@ -119,23 +145,129 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  //getTimeAndDate();
+
+
+	 getTimeAndDate();
 
 
 
-	  //int sekundy=DS3231_Time.seconds;
 
-	 lcd_send_cmd (0x80);  // goto 1,1
-
-	 lcd_send_integer(trzy,2);
+	/* if(HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0) == 1)
+		  {
 
 
+		  }
+	*/
 
-	 //lcd_send_cmd(0xc0);
-	 //lcd_send_string("Czas Europejski");
+
+	 switch(flaga)
+	 {
+	 case 0:
+		 HAL_GPIO_WritePin(GPIOD,GPIO_PIN_12,GPIO_PIN_RESET);
+		 	 if(clearc==2)
+		 	 {
+		 		 lcd_clear();
+		 	 }
+
+		 	 clearc=1;
 
 
-	 HAL_Delay(2000);
+	 		 	 	 	 lcd_send_cmd (0x80);  // goto 1,1
+	 					 lcd_send_integer(DS3231_Time.hours,2);
+
+	 					 lcd_send_cmd (0x82);
+	 					 lcd_send_string(":");
+
+	 					 lcd_send_cmd (0x83);
+	 					 lcd_send_integer(DS3231_Time.minutes,2);
+
+
+	 					 lcd_send_cmd (0x85);
+	 					 lcd_send_string(":");
+
+	 					 lcd_send_cmd (0x86);
+	 					lcd_send_integer(DS3231_Time.seconds,2);
+
+
+
+	 					 lcd_send_cmd(0xc0);
+	 					 lcd_send_string(" Czas Europejski");
+
+	 					// clearc=1;
+	 					 HAL_Delay(1000);
+
+
+
+
+	 					 break;
+
+	 case 1:
+		 HAL_GPIO_WritePin(GPIOD,GPIO_PIN_12,GPIO_PIN_SET);
+		 if(clearc==1)
+		{
+			lcd_clear();
+		}
+		clearc=2;
+
+				 lcd_send_cmd (0x80);
+				 lcd_send_string("Ustawianie czasu");
+				 lcd_send_cmd (0xc1);
+				 lcd_send_integer(godziny,2);
+				 lcd_send_cmd (0xc3);
+				lcd_send_string(":");
+				lcd_send_cmd (0xc4);
+				lcd_send_integer(minuty,2);
+
+
+				HAL_Delay(1000);
+
+				 if(HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_2) == 1)
+						 {
+							 flaga=0;
+
+						}
+				 if(HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_1) == 1)
+				 		{
+					 	 	 godziny++;
+
+
+				 		}
+				 if(HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_4) == 1)
+					{
+								minuty++;
+					}
+				 if(godziny==25)
+				 	{
+
+					 godziny=0;
+
+				 	}
+				 	if(minuty==60)
+				 	{
+
+				 		 minuty=0;
+				 	}
+				 	if(HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_0) == 1)
+				 		{
+				 	DS3231_setTime(godziny, minuty, seconds, amPmStateSet, hourFormat);
+				 					 flaga=0;
+				 		}
+
+
+
+
+
+
+
+	 }
+
+	 if(HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0) == 1)
+				 {
+					 flaga=1;
+
+				 }
+	// if(HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0) == 1)
+
 
 
 
@@ -283,10 +415,37 @@ static void MX_USART2_UART_Init(void)
 static void MX_GPIO_Init(void)
 {
 
+  GPIO_InitTypeDef GPIO_InitStruct;
+
   /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOH_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
+  __HAL_RCC_GPIOD_CLK_ENABLE();
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOD, GPIO_PIN_12, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin : PA0 */
+  GPIO_InitStruct.Pin = GPIO_PIN_0;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : PB0 PB1 PB2 PB4 
+                           PB5 */
+  GPIO_InitStruct.Pin = GPIO_PIN_0|GPIO_PIN_1|GPIO_PIN_2|GPIO_PIN_4 
+                          |GPIO_PIN_5;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : PD12 */
+  GPIO_InitStruct.Pin = GPIO_PIN_12;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 
 }
 

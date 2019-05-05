@@ -50,3 +50,7 @@ void lcd_send_integer(int number,uint8_t lg)
 	sprintf(Str,"%d",number);
 	lcd_send_string(Str);
 }
+void lcd_clear()
+{
+	lcd_send_cmd(0x01);
+}
