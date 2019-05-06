@@ -123,9 +123,13 @@ int main(void)
      	  lcd_init();
   /* USER CODE BEGIN 2 */
   int minuty=0;
-  int godziny=0;
+  int dziala=0;
+  int realgodziny=0;
+  int realminuty=0;
   int flaga=0;
   int clearc=0;
+  int dupa=0;
+
   //day -> dzien tygodnia od 1-7, date -> dzien miesiaca
   //day= 6, date = 27, month = 4, year = 19;
   //DS3231_setDate(day, date, month, year);
@@ -147,7 +151,7 @@ int main(void)
   {
 
 
-	 getTimeAndDate();
+	  getTimeAndDate();
 
 
 
@@ -163,6 +167,7 @@ int main(void)
 	 switch(flaga)
 	 {
 	 case 0:
+
 		 HAL_GPIO_WritePin(GPIOD,GPIO_PIN_12,GPIO_PIN_RESET);
 		 	 if(clearc==2)
 		 	 {
@@ -171,27 +176,74 @@ int main(void)
 
 		 	 clearc=1;
 
+		 	 	if(DS3231_Time.hours<10)
+		 	 	{
+
 
 	 		 	 	 	 lcd_send_cmd (0x80);  // goto 1,1
-	 					 lcd_send_integer(DS3231_Time.hours,2);
+	 		 	 	 	 lcd_send_integer(0,1);
+	 		 	 	 	 lcd_send_cmd(0x81);
+	 					 lcd_send_integer(DS3231_Time.hours,1);
+		 	 	}
+		 	 	if(DS3231_Time.hours>=10)
+		 	 {
+
+
+		 	 		 	lcd_send_cmd (0x80);  // goto 1,1
+
+		 	 		 lcd_send_integer(DS3231_Time.hours,2);
+		 	 }
 
 	 					 lcd_send_cmd (0x82);
 	 					 lcd_send_string(":");
 
-	 					 lcd_send_cmd (0x83);
-	 					 lcd_send_integer(DS3231_Time.minutes,2);
+	 					if(DS3231_Time.minutes<10)
+	 		{
+
+
+	 			lcd_send_cmd (0x83);  // goto 1,1
+	 			lcd_send_integer(0,1);
+	 			lcd_send_cmd(0x84);
+	 			lcd_send_integer(DS3231_Time.minutes,1);
+	 	}
+	 				if(DS3231_Time.minutes>=10)
+	 				{
+
+
+	 							 	 		lcd_send_cmd (0x83);  // goto 1,1
+
+	 							 	 		 lcd_send_integer(DS3231_Time.minutes,2);
+	 				}
+
 
 
 	 					 lcd_send_cmd (0x85);
 	 					 lcd_send_string(":");
-
+	 				if(DS3231_Time.seconds<10)
+	 				{
 	 					 lcd_send_cmd (0x86);
+	 					 lcd_send_integer(0,1);
+	 					 lcd_send_cmd(0x87);
+	 					 lcd_send_integer(DS3231_Time.seconds,1);
+	 				}
+	 				if(DS3231_Time.seconds>=10)
+	 			{
+	 					lcd_send_cmd (0x86);
 	 					lcd_send_integer(DS3231_Time.seconds,2);
+	 			}
 
 
 
 	 					 lcd_send_cmd(0xc0);
-	 					 lcd_send_string(" Czas Europejski");
+	 					 lcd_send_string("Data :");
+
+	 					 lcd_send_cmd(0xc6);
+	 					 lcd_send_integer(DS3231_Time.day);
+	 					 lcd_send_cmd(0xc8);
+	 					 lcd_send_string(".");
+	 					 lcd_send_cmd(0xc9);
+	 					 lcd_send_integer(DS3231_Time.month);
+
 
 	 					// clearc=1;
 	 					 HAL_Delay(1000);
@@ -209,14 +261,38 @@ int main(void)
 		}
 		clearc=2;
 
+
 				 lcd_send_cmd (0x80);
 				 lcd_send_string("Ustawianie czasu");
-				 lcd_send_cmd (0xc1);
-				 lcd_send_integer(godziny,2);
-				 lcd_send_cmd (0xc3);
-				lcd_send_string(":");
-				lcd_send_cmd (0xc4);
-				lcd_send_integer(minuty,2);
+				 if(realgodziny<10)
+				 {
+					 lcd_send_cmd(0xc0);
+					 lcd_send_integer(0,1);
+					 lcd_send_cmd(0xc1);
+					 lcd_send_integer(realgodziny,1);
+				 }
+				 if(realgodziny>=10)
+				 {
+					 lcd_send_cmd(0xc0);
+					 lcd_send_integer(realgodziny,2);
+				 }
+
+				 lcd_send_cmd (0xc2);
+				 lcd_send_string(":");
+				 if(dupa<10)
+				{
+				 					 lcd_send_cmd(0xc3);
+				 					 lcd_send_integer(0,1);
+				 					 lcd_send_cmd(0xc4);
+				 					 lcd_send_integer(dupa,1);
+				}
+				 				 if(dupa>=10)
+				 				 {
+				 					 lcd_send_cmd(0xc3);
+				 					 lcd_send_integer(dupa,2);
+				 				 }
+
+
 
 
 				HAL_Delay(1000);
@@ -228,29 +304,35 @@ int main(void)
 						}
 				 if(HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_1) == 1)
 				 		{
-					 	 	 godziny++;
+					 	 	 realgodziny++;
 
 
 				 		}
 				 if(HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_4) == 1)
 					{
-								minuty++;
+								dupa++;
 					}
-				 if(godziny==25)
+				 if(realgodziny==25)
+		{
+
+					 lcd_clear();
+
+					// realgodziny=0;
+
+		}
+				 	if(dupa==60)
 				 	{
-
-					 godziny=0;
-
-				 	}
-				 	if(minuty==60)
-				 	{
-
-				 		 minuty=0;
+				 		lcd_clear();
+				 		 dupa=0;
 				 	}
 				 	if(HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_0) == 1)
 				 		{
-				 	DS3231_setTime(godziny, minuty, seconds, amPmStateSet, hourFormat);
-				 					 flaga=0;
+
+				 		realminuty=dupa;
+
+				 		dupa=0;
+				 		DS3231_setTime(realgodziny, realminuty, seconds, amPmStateSet, hourFormat);
+				 		flaga=0;
 				 		}
 
 
