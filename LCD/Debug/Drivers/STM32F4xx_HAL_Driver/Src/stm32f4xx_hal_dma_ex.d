@@ -20,6 +20,8 @@ Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_dma_ex.o: \
  /Users/stanislawkucznerowicz/Documents/Ptm/LCD/Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_dma.h \
  /Users/stanislawkucznerowicz/Documents/Ptm/LCD/Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_dma_ex.h \
  /Users/stanislawkucznerowicz/Documents/Ptm/LCD/Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_cortex.h \
+ /Users/stanislawkucznerowicz/Documents/Ptm/LCD/Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_dac.h \
+ /Users/stanislawkucznerowicz/Documents/Ptm/LCD/Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_dac_ex.h \
  /Users/stanislawkucznerowicz/Documents/Ptm/LCD/Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_flash.h \
  /Users/stanislawkucznerowicz/Documents/Ptm/LCD/Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_flash_ex.h \
  /Users/stanislawkucznerowicz/Documents/Ptm/LCD/Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_flash_ramfunc.h \
@@ -27,6 +29,8 @@ Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_dma_ex.o: \
  /Users/stanislawkucznerowicz/Documents/Ptm/LCD/Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_i2c_ex.h \
  /Users/stanislawkucznerowicz/Documents/Ptm/LCD/Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_pwr.h \
  /Users/stanislawkucznerowicz/Documents/Ptm/LCD/Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_pwr_ex.h \
+ /Users/stanislawkucznerowicz/Documents/Ptm/LCD/Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim.h \
+ /Users/stanislawkucznerowicz/Documents/Ptm/LCD/Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim_ex.h \
  /Users/stanislawkucznerowicz/Documents/Ptm/LCD/Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_uart.h
 
 /Users/stanislawkucznerowicz/Documents/Ptm/LCD/Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal.h:
@@ -69,6 +73,10 @@ Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_dma_ex.o: \
 
 /Users/stanislawkucznerowicz/Documents/Ptm/LCD/Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_cortex.h:
 
+/Users/stanislawkucznerowicz/Documents/Ptm/LCD/Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_dac.h:
+
+/Users/stanislawkucznerowicz/Documents/Ptm/LCD/Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_dac_ex.h:
+
 /Users/stanislawkucznerowicz/Documents/Ptm/LCD/Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_flash.h:
 
 /Users/stanislawkucznerowicz/Documents/Ptm/LCD/Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_flash_ex.h:
@@ -82,5 +90,9 @@ Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_dma_ex.o: \
 /Users/stanislawkucznerowicz/Documents/Ptm/LCD/Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_pwr.h:
 
 /Users/stanislawkucznerowicz/Documents/Ptm/LCD/Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_pwr_ex.h:
+
+/Users/stanislawkucznerowicz/Documents/Ptm/LCD/Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim.h:
+
+/Users/stanislawkucznerowicz/Documents/Ptm/LCD/Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim_ex.h:
 
 /Users/stanislawkucznerowicz/Documents/Ptm/LCD/Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_uart.h:

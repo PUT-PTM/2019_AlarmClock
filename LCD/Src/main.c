@@ -40,13 +40,19 @@
 #include "main.h"
 #include "stm32f4xx_hal.h"
 #include "ds3231.h"
+#include "i2c-lcd.h"
+
 /* USER CODE BEGIN Includes */
 
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
+DAC_HandleTypeDef hdac;
+
 I2C_HandleTypeDef hi2c1;
 I2C_HandleTypeDef hi2c2;
+
+
 
 UART_HandleTypeDef huart2;
 
@@ -61,22 +67,12 @@ static void MX_GPIO_Init(void);
 static void MX_I2C1_Init(void);
 static void MX_I2C2_Init(void);
 static void MX_USART2_UART_Init(void);
+static void MX_TIM4_Init(void);
+static void MX_DAC_Init(void);
 
 /* USER CODE BEGIN PFP */
 /* Private function prototypes -----------------------------------------------*/
-void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
-{
 
-	HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0) == GPIO_PIN_SET;
-
-   	 HAL_GPIO_WritePin(GPIOD,GPIO_PIN_12,SET);
-   	  lcd_clear();
-   	  int number=5;
-   	  lcd_send_cmd(0x80);
-   	  lcd_send_integer(number,2);
-
-
-}
 
 
 
@@ -119,8 +115,10 @@ int main(void)
   MX_I2C1_Init();
   MX_I2C2_Init();
   MX_USART2_UART_Init();
+
+  MX_DAC_Init();
+  lcd_init();
   RTC_Init();
-     	  lcd_init();
   /* USER CODE BEGIN 2 */
   int minuty=0;
   int dziala=0;
@@ -129,15 +127,18 @@ int main(void)
   int flaga=0;
   int clearc=0;
   int dupa=0;
+  int alargodz=0;
+  int alarmin=0;
+
 
   //day -> dzien tygodnia od 1-7, date -> dzien miesiaca
   //day= 6, date = 27, month = 4, year = 19;
   //DS3231_setDate(day, date, month, year);
-
+  seconds=0;
 
  //ampm i hourformat nie jest wykorzystywany
 
-  seconds = 0;
+
   //DS3231_setTime(hour, minute, seconds, amPmStateSet, hourFormat);
   //HAL_TIM_Base_Start_IT(&htim4);
 
@@ -184,6 +185,7 @@ int main(void)
 	 		 	 	 	 lcd_send_integer(0,1);
 	 		 	 	 	 lcd_send_cmd(0x81);
 	 					 lcd_send_integer(DS3231_Time.hours,1);
+
 		 	 	}
 		 	 	if(DS3231_Time.hours>=10)
 		 	 {
@@ -233,16 +235,43 @@ int main(void)
 	 			}
 
 
-
-	 					 lcd_send_cmd(0xc0);
-	 					 lcd_send_string("Data :");
-
-	 					 lcd_send_cmd(0xc6);
-	 					 lcd_send_integer(DS3231_Time.day);
-	 					 lcd_send_cmd(0xc8);
+	 					if(DS3231_Time.day<10)
+	 					{
+	 						lcd_send_cmd(0xc0);
+	 						lcd_send_integer(0,1);
+	 						lcd_send_cmd(0xc1);
+	 						lcd_send_integer(DS3231_Time.day,1);
+	 					}
+	 					if(DS3231_Time.day>10)
+	 				{
+	 					lcd_send_cmd(0xc0);
+	 					lcd_send_integer(DS3231_Time.day,2);
+	 				}
+	 					 lcd_send_cmd(0xc2);
 	 					 lcd_send_string(".");
-	 					 lcd_send_cmd(0xc9);
-	 					 lcd_send_integer(DS3231_Time.month);
+
+
+	 				if(DS3231_Time.month<10)
+	 				{
+	 					lcd_send_cmd(0xc3);
+	 					lcd_send_integer(0,1);
+	 					lcd_send_cmd(0xc4);
+	 					lcd_send_integer(DS3231_Time.month,1);
+	 				}
+
+	 				lcd_send_cmd(0xc5);
+	 				lcd_send_string(".");
+	 				lcd_send_cmd(0xc6);
+	 				lcd_send_integer(DS3231_Time.year,2);
+
+
+
+
+
+
+
+
+
 
 
 	 					// clearc=1;
@@ -254,12 +283,15 @@ int main(void)
 	 					 break;
 
 	 case 1:
+	 {
+
 		 HAL_GPIO_WritePin(GPIOD,GPIO_PIN_12,GPIO_PIN_SET);
 		 if(clearc==1)
 		{
 			lcd_clear();
 		}
 		clearc=2;
+
 
 
 				 lcd_send_cmd (0x80);
@@ -317,7 +349,7 @@ int main(void)
 
 					 lcd_clear();
 
-					// realgodziny=0;
+
 
 		}
 				 	if(dupa==60)
@@ -329,26 +361,108 @@ int main(void)
 				 		{
 
 				 		realminuty=dupa;
-
+				 		realgodziny=dziala;
 				 		dupa=0;
-				 		DS3231_setTime(realgodziny, realminuty, seconds, amPmStateSet, hourFormat);
+				 		realgodziny=0;
+				 		DS3231_setTime(dziala, realminuty, seconds, amPmStateSet, hourFormat);
 				 		flaga=0;
 				 		}
-
-
-
-
-
-
+				 	break;
 
 	 }
 
-	 if(HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0) == 1)
+
+
+	 case 2:
+
+		 if(clearc==1)
+				{
+					lcd_clear();
+				}
+				clearc=2;
+
+				 lcd_send_cmd (0x80);
+				 lcd_send_string(" Budzik");
+				 if(alargodz<10)
+				 				 {
+				 					 lcd_send_cmd(0xc0);
+				 					 lcd_send_integer(0,1);
+				 					 lcd_send_cmd(0xc1);
+				 					 lcd_send_integer(alargodz,1);
+				 				 }
+				 				 if(alargodz>=10)
+				 				 {
+				 					 lcd_send_cmd(0xc0);
+				 					 lcd_send_integer(alargodz,2);
+				 				 }
+
+				 				 lcd_send_cmd (0xc2);
+				 				 lcd_send_string(":");
+				 				 if(alarmin<10)
+				 				{
+				 				 					 lcd_send_cmd(0xc3);
+				 				 					 lcd_send_integer(0,1);
+				 				 					 lcd_send_cmd(0xc4);
+				 				 					 lcd_send_integer(alarmin,1);
+				 				}
+				 				 if(alarmin>=10)
+				 				{
+				 				 					 lcd_send_cmd(0xc3);
+				 				 					 lcd_send_integer(alarmin,2);
+				 				 				 }
+
+
+
+				 				HAL_Delay(1000);
+
+				 				 if(HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_1) == 1)
+				 								 		{
+				 									 	 	 alargodz++;
+
+
+				 								 		}
+				 								 if(HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_4) == 1)
+				 									{
+				 												alarmin++;
+				 									}
+
+				 								if(HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_0) == 1)
+				 												 		{
+
+
+
+				 												 		DS3231_setAlarm_e(alargodz, alarmin, seconds, amPmStateSet, hourFormat);
+				 												 		flaga=0;
+				 												 		}
+
+
+
+
+				if(HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_2) == 1)
+			 {
+				 	flaga=0;
+
+				}
+
+
+
+				break;
+
+	 }
+
+	 if(HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_5) == 1)
 				 {
 					 flaga=1;
 
 				 }
-	// if(HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0) == 1)
+
+	if(HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_8) == 1)
+				 {
+						 flaga=2;
+
+				 }
+
+
 
 
 
@@ -428,6 +542,38 @@ void SystemClock_Config(void)
   HAL_NVIC_SetPriority(SysTick_IRQn, 0, 0);
 }
 
+/* DAC init function */
+static void MX_DAC_Init(void)
+{
+
+  DAC_ChannelConfTypeDef sConfig;
+
+    /**DAC Initialization 
+    */
+  hdac.Instance = DAC;
+  if (HAL_DAC_Init(&hdac) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
+
+    /**DAC channel OUT1 config 
+    */
+  sConfig.DAC_Trigger = DAC_TRIGGER_NONE;
+  sConfig.DAC_OutputBuffer = DAC_OUTPUTBUFFER_ENABLE;
+  if (HAL_DAC_ConfigChannel(&hdac, &sConfig, DAC_CHANNEL_1) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
+
+    /**DAC channel OUT2 config 
+    */
+  if (HAL_DAC_ConfigChannel(&hdac, &sConfig, DAC_CHANNEL_2) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
+
+}
+
 /* I2C1 init function */
 static void MX_I2C1_Init(void)
 {
@@ -462,6 +608,38 @@ static void MX_I2C2_Init(void)
   hi2c2.Init.GeneralCallMode = I2C_GENERALCALL_DISABLE;
   hi2c2.Init.NoStretchMode = I2C_NOSTRETCH_DISABLE;
   if (HAL_I2C_Init(&hi2c2) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
+
+}
+
+/* TIM4 init function */
+static void MX_TIM4_Init(void)
+{
+
+  TIM_ClockConfigTypeDef sClockSourceConfig;
+  TIM_MasterConfigTypeDef sMasterConfig;
+
+  htim4.Instance = TIM4;
+  htim4.Init.Prescaler = 20;
+  htim4.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim4.Init.Period = 99;
+  htim4.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  if (HAL_TIM_Base_Init(&htim4) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
+
+  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+  if (HAL_TIM_ConfigClockSource(&htim4, &sClockSourceConfig) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
+
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim4, &sMasterConfig) != HAL_OK)
   {
     _Error_Handler(__FILE__, __LINE__);
   }
@@ -508,8 +686,8 @@ static void MX_GPIO_Init(void)
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOD, GPIO_PIN_12, GPIO_PIN_RESET);
 
-  /*Configure GPIO pin : PA0 */
-  GPIO_InitStruct.Pin = GPIO_PIN_0;
+  /*Configure GPIO pins : PA0 PA8 PA15 */
+  GPIO_InitStruct.Pin = GPIO_PIN_0|GPIO_PIN_8|GPIO_PIN_15;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_PULLDOWN;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);

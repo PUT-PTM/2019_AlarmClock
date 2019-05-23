@@ -4,6 +4,8 @@
 
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS += \
+../Src/audio.c \
+../Src/audio2.c \
 ../Src/i2c-lcd.c \
 ../Src/main.c \
 ../Src/sd3231.c \
@@ -12,6 +14,8 @@ C_SRCS += \
 ../Src/system_stm32f4xx.c 
 
 OBJS += \
+./Src/audio.o \
+./Src/audio2.o \
 ./Src/i2c-lcd.o \
 ./Src/main.o \
 ./Src/sd3231.o \
@@ -20,6 +24,8 @@ OBJS += \
 ./Src/system_stm32f4xx.o 
 
 C_DEPS += \
+./Src/audio.d \
+./Src/audio2.d \
 ./Src/i2c-lcd.d \
 ./Src/main.d \
 ./Src/sd3231.d \
