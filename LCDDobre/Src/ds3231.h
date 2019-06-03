@@ -2,6 +2,7 @@
 #define DS3231_H_
 #include "stm32f4xx_hal.h"
 #include "sd3231.c"
+#include "main.h"
 #define DS3231_ADD  0xD0
 #define DS3231_SECONDS_REGISTER 0x00
 #define DS3231_ALARM1_SECONDS_REGISTER 0x07
@@ -17,20 +18,70 @@
 #define monthREG    0x05
 #define yearREG       0x06
 
+static void MX_DAC_Init(void);
+static void MX_TIM4_Init(void);
 extern uint8_t rtcData[8];
 uint8_t I2C_WriteBuffer(I2C_HandleTypeDef hi, uint8_t DEV_ADDR, uint8_t *buf, uint8_t sizebuf);
 uint8_t I2C_ReadBuffer(I2C_HandleTypeDef hi, uint8_t DEV_ADDR, uint8_t *buf, uint8_t sizebuf);
 void getTimeAndDate(void);
-
+DAC_HandleTypeDef hdac;
+TIM_HandleTypeDef htim4;
+extern const uint8_t Bell[162140];
+extern const uint8_t BlackSails[226216];
+extern const uint8_t IndianaJones[491842];
+int i=0;
+int sound_of_alarm=0;
+int max_DAC=1000;
 extern I2C_HandleTypeDef hi2c2;
 extern UART_HandleTypeDef huart2;
+int value=0;
 //--------------------------------------
 uint8_t rtcData[8];
 char str[100];
-extern uint8_t day=0, date=0, month=0, year=0;
-extern uint8_t hour = 0, minute = 0, seconds = 0, amPmStateSet=0, hourFormat = 0;
-//--------------------------------------
 
+extern uint8_t day=0, date=0, month=0, year=0;
+extern uint8_t hour = 0, minute = 0, seconds = 0;
+//--------------------------------------
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+	if(htim->Instance == TIM4)
+	{
+		switch(sound_of_alarm)
+		{
+			case 1:
+			{
+				HAL_DAC_SetValue(&hdac,DAC_CHANNEL_1,DAC_ALIGN_12B_R, BlackSails[i]);
+				max_DAC=226216;
+				break;
+			}
+			case 2:
+			{
+				HAL_DAC_SetValue(&hdac,DAC_CHANNEL_1,DAC_ALIGN_12B_R, Bell[i]);
+				max_DAC=162140;
+				break;
+			}
+			case 3:
+			{
+				HAL_DAC_SetValue(&hdac,DAC_CHANNEL_1,DAC_ALIGN_12B_R, IndianaJones[i]);
+				max_DAC=491842;
+				break;
+			}
+		}
+
+		i++;
+
+		if(i>=max_DAC)
+		{
+			i = 0;
+		}
+		if(HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0)==GPIO_PIN_SET)
+		{
+				HAL_TIM_Base_Stop_IT(&htim4);
+				HAL_DAC_Stop(&hdac,DAC_CHANNEL_1);
+				i = 0;
+		}
+	}
+}
 typedef enum ErrorStat
 {
     I2C_Buf_Error = 0x00,
@@ -49,25 +100,26 @@ typedef enum weekDay_Enum_Struct
 typedef struct
 {
     uint8_t seconds;    	//00-59
-    char secondsTab[2]; 	/*secondsTab[0]=liczba dziesiatek sekund(4.),
-         	 	 	 	 	  seconds Tab[1]= liczba jednosci sekund(.5)*/
     uint8_t minutes;    	//00-59
-    char minutesTab[2];
-        uint8_t hours;      //00-23
-    char hoursTab[2];
-        uint8_t day;        /* Day in a week 1-7 */
-    weekDay_t dayTab;
-        uint8_t date;       //1-31
-    char dateTab[2];
-        uint8_t month;      //1-12
-    char monthTab[2];       /* Contains coverted month data*/
-        uint8_t year;       //00-99
-    char yearTab[2];    	/**/
+     uint8_t hours;      //00-23
+     uint8_t day;        /* Day in a week 1-7 */
+     uint8_t date;       //1-31
+     uint8_t month;      //1-12
+     uint8_t year;       //00-99
 }DS3231_Time_t;
+typedef struct
+{
+	uint8_t seconds;
+	uint8_t minutes;
+	uint8_t hours;
+	uint8_t day;
+	uint8_t date;
+	uint8_t month;
+}Alarm_easier;
 //--------------------------------------
 DS3231_Time_t DS3231_Time;
+Alarm_easier Alarm_e;
 //--------------------------------------
-//czyszczenie bufora domy�lnymi warto�ciami
 static uint8_t clearDS3231Buffer(void)
 {
     DS3231_Time.seconds = 0;
@@ -79,7 +131,6 @@ static uint8_t clearDS3231Buffer(void)
     DS3231_Time.year = 0;
 }
 //--------------------------------------
-//wypisywanie danych z ukladu
 uint8_t I2C_WriteBuffer(I2C_HandleTypeDef hi, uint8_t DEV_ADDR, uint8_t *buf, uint8_t sizebuf)
 {
     while(HAL_I2C_Master_Transmit(&hi, (uint16_t)DEV_ADDR,(uint8_t*)buf,
@@ -93,7 +144,6 @@ uint8_t I2C_WriteBuffer(I2C_HandleTypeDef hi, uint8_t DEV_ADDR, uint8_t *buf, ui
     return I2C_Buf_OK;
 }
 //--------------------------------------
-//odbieranie danych z ukladu
 uint8_t I2C_ReadBuffer(I2C_HandleTypeDef hi, uint8_t DEV_ADDR, uint8_t *buf, uint8_t sizebuf)
 {
     while(HAL_I2C_Master_Receive(&hi, (uint16_t)DEV_ADDR, (uint8_t*)buf,
@@ -126,6 +176,7 @@ inline static uint8_t RTC_ConvertFromBinDec(uint8_t c)
 void getTimeAndDate(void)
 {
 	//clearDS3231Buffer();
+
 	uint8_t rtcData[8];
     I2C_WriteBuffer(hi2c2, (uint16_t)0xD0, rtcData, 1);
     while(HAL_I2C_GetState(&hi2c2)!=HAL_I2C_STATE_READY) { }
@@ -151,11 +202,12 @@ void getTimeAndDate(void)
 
     DS3231_Time.seconds = rtcData[0];
     DS3231_Time.seconds = RTC_ConvertFromDec(DS3231_Time.seconds);
+
+    checkalarm_e();
 }
 
-///////////USTAWIANIE CZASU
 
-void DS3231_setTime(uint8_t hourToSet, uint8_t minuteToSet, uint8_t  secondToSet, uint8_t amPmStateSet, uint8_t hourFormat)
+void DS3231_setTime(uint8_t hourToSet, uint8_t minuteToSet, uint8_t  secondToSet)
 {
     unsigned char writeValue = 0;
 
@@ -183,20 +235,36 @@ void DS3231_setDate(uint8_t daySet, uint8_t dateSet, uint8_t monthSet, uint8_t y
     uint8_t data4[2] = {yearREG, (RTC_ConvertFromBinDec(yearSet))};
     I2C_WriteBuffer(hi2c2, DS3231_ADD, data4, sizeof(data4));
 }
-
-//
-uint8_t hexadec_to_dec(uint8_t x)
+void DS3231_setAlarm_e(uint8_t hourToSet, uint8_t minuteToSet, uint8_t  secondToSet, int sound)
 {
-      uint8_t decimal_number, remainder, count = 0;
-      while(x > 0)
-      {
-            remainder = x % 10;
-            decimal_number = decimal_number + remainder * pow(16, count);
-            x = x / 10;
-            count++;
-      }
-      return decimal_number;
+	Alarm_e.hours=hourToSet;
+	Alarm_e.minutes=minuteToSet;
+	Alarm_e.seconds=secondToSet;
+	sound_of_alarm=sound;
+
 }
+void checkalarm_e()
+{
+	if(DS3231_Time.seconds==Alarm_e.seconds)
+	{
+		if(DS3231_Time.minutes==Alarm_e.minutes)
+		{
+			if(DS3231_Time.hours==Alarm_e.hours)
+			{
+				HAL_GPIO_WritePin(GPIOD, GPIO_PIN_15, 1);
+				value=1;
+				MX_DAC_Init();
+				MX_TIM4_Init();
+				HAL_TIM_Base_Start_IT(&htim4);
+				HAL_DAC_Start(&hdac,DAC_CHANNEL_1);
+			}
+		}
+	}
+
+
+}
+//
+
 
 
 #endif /* DS3231_H_ */
