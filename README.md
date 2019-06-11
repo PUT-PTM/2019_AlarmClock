@@ -3,7 +3,7 @@ Projekt LCD
 Stanisław Kucznerowicz & Arkadiusz Dudziak
 Zegar z wyświetlaczem z funkcją zmiany daty oraz godziny. Zegar posiada również funkcję budzika przy której można zmieniać utwory. 
 Sterowanie poprzez przyciski: 
-K0 -> wyświetlanie czasu
+K0 -> wyświetlanie czasu 
 K1 -> zwiększanie ustawianych godzin lub dnia
 K2 -> zwiekszanie ustawianych minut lub miesiący
 K3 -> potwierdzenie ustawienia alarmu, daty lub czasu
