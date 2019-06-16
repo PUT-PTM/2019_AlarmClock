@@ -47,7 +47,7 @@ GND--->GND
 # How to compile
 You need only to copy the code.
 # Future improvements
--add new alarm clocks
+-add new alarm clocks  
 -improve case
 # Attributions
 Base code for LCD: https://www.controllerstech.com/i2c-lcd-in-stm32/  
@@ -55,7 +55,7 @@ Base code for DS3231: https://elektronika327.blogspot.com/2017/06/26-stm32f4-rtc
 # License
 MIT
 # Credits
-Result of Arkadiusz Dudziak and Stanisław Kucznerowicz work.
+Result of Arkadiusz Dudziak and Stanisław Kucznerowicz work.  
 The project was conducted during the Microprocessor Lab course held by the Institute of Control and Information Engineering, Poznan University of Technology.
 Supervisor:Tomasz Mańkowski
 
