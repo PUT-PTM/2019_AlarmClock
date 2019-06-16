@@ -56,6 +56,6 @@ Base code for DS3231: https://elektronika327.blogspot.com/2017/06/26-stm32f4-rtc
 MIT
 # Credits
 Result of Arkadiusz Dudziak and Stanisław Kucznerowicz work.  
-The project was conducted during the Microprocessor Lab course held by the Institute of Control and Information Engineering, Poznan University of Technology.
+The project was conducted during the Microprocessor Lab course held by the Institute of Control and Information Engineering, Poznan University of Technology.  
 Supervisor:Tomasz Mańkowski
 
